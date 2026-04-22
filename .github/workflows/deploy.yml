@@ -1,0 +1,22 @@
+name: Deploy to Vultr
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/caleb
+            git pull origin main
+            npm install
+            NODE_OPTIONS="--max-old-space-size=4096" npm run build
+            pm2 restart order-admin
