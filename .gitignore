@@ -3,3 +3,4 @@ node_modules/
 .anaconda/
 .codex/
 .gitkraken/
+.next/
