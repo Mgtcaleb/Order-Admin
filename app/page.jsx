@@ -1611,7 +1611,7 @@ function AmazonCartSection({ items }) {
 }
 
 function BottomActionTabs({ items, orderNumber, poNumber, payment, customer, sellingCountry, completeOrderStatus }) {
-  const [activeTab, setActiveTab] = useState('charge');
+  const [activeTab, setActiveTab] = useState('');
   const [notificationLogs, setNotificationLogs] = useState([]);
   const cartLinks = useMemo(() => buildCartLinksByMarket(items), [items]);
   const cartByMarket = useMemo(
@@ -1664,7 +1664,7 @@ function BottomActionTabs({ items, orderNumber, poNumber, payment, customer, sel
                 : 'text-blue-600 hover:bg-blue-50'
             }`}
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => setActiveTab((prev) => (prev === tab.id ? '' : tab.id))}
             type="button"
           >
             <TabOptionIcon id={tab.id} />
