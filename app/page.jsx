@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchOrderProcessingData, saveOrderItemPatch } from '../lib/mockOrderApi';
 import { estimatePackageMetrics } from '../lib/weightClassifier';
 
@@ -1037,62 +1038,128 @@ function OrderItemCard({
 }
 
 function JourneyLogsModal({ isOpen, oiId, itemName, logs, onClose }) {
+  const scrollContainerRef = useRef(null);
+  useBodyScrollLock(isOpen);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [isOpen, oiId]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/55 p-4">
-      <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Item Journey Logs</p>
-            <h3 className="text-base font-semibold text-slate-900">
-              #{oiId} • {itemName}
-            </h3>
-          </div>
-          <button
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
-            onClick={onClose}
-            type="button"
-          >
-            Close
-          </button>
-        </div>
+  if (typeof document === 'undefined') {
+    return null;
+  }
 
-        <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
-          <div className="space-y-2">
-            {logs.length === 0 ? (
-              <p className="text-sm text-slate-500">No journey logs available for this item yet.</p>
-            ) : (
-              logs.map((log, index) => (
-                <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2.5" key={`${log.timestamp}-${log.action}-${index}`}>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[13px] font-semibold text-slate-900">{log.action}</p>
-                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
-                      {formatTimelineTimestamp(log.timestamp)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[12px] text-slate-700">
-                    <span className="font-semibold">{log.actorName}</span>
-                    <span className="text-slate-500"> • {log.actorRole}</span>
-                  </p>
-                  {log.location ? (
-                    <p className="mt-0.5 text-[11px] italic text-slate-500">
-                      {log.location}
-                    </p>
-                  ) : null}
-                  {log.details ? (
-                    <p className="mt-1 text-[12px] text-slate-600">{log.details}</p>
-                  ) : null}
-                </div>
-              ))
-            )}
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[120] bg-slate-900/60 p-3 sm:p-5"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto flex min-h-full w-full max-w-4xl items-center justify-center">
+          <div
+            aria-modal="true"
+            className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Item Journey Logs</p>
+                <h3 className="text-base font-semibold text-slate-900">
+                  #{oiId} • {itemName}
+                </h3>
+              </div>
+              <button
+                className="rounded-md border border-slate-300 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
+                onClick={onClose}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="max-h-[78vh] overflow-y-auto px-4 py-3" ref={scrollContainerRef}>
+              <div className="space-y-2">
+                {logs.length === 0 ? (
+                  <p className="text-sm text-slate-500">No journey logs available for this item yet.</p>
+                ) : (
+                  logs.map((log, index) => (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2.5" key={`${log.timestamp}-${log.action}-${index}`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-[13px] font-semibold text-slate-900">{log.action}</p>
+                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                          {formatTimelineTimestamp(log.timestamp)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[12px] text-slate-700">
+                        <span className="font-semibold">{log.actorName}</span>
+                        <span className="text-slate-500"> • {log.actorRole}</span>
+                      </p>
+                      {log.location ? (
+                        <p className="mt-0.5 text-[11px] italic text-slate-500">
+                          {log.location}
+                        </p>
+                      ) : null}
+                      {log.details ? (
+                        <p className="mt-1 text-[12px] text-slate-600">{log.details}</p>
+                      ) : null}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
+}
+
+function useBodyScrollLock(isLocked) {
+  useEffect(() => {
+    if (!isLocked) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, [isLocked]);
 }
 
 function EditOiModal({
