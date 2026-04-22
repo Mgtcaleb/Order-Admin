@@ -19,4 +19,7 @@ jobs:
             git pull origin main
             npm install
             NODE_OPTIONS="--max-old-space-size=4096" npm run build
-            pm2 restart order-admin
+            # Try to delete the old process, but don't fail if it doesn't exist
+            pm2 delete order-admin || true
+            # Start the new process
+            pm2 start npm --name "order-admin" -- start
