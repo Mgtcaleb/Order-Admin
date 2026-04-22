@@ -6,6 +6,12 @@
   --color-admin-100: #dbeafe;
   --color-admin-600: #2563eb;
   --color-admin-800: #1e3a8a;
+  --color-luxe-50: #f8fafc;
+  --color-luxe-100: #eef2ff;
+  --color-luxe-700: #0f172a;
+  --color-luxe-800: #0b1220;
+  --color-luxe-teal: #0f766e;
+  --color-luxe-gold: #d97706;
   --color-transit-100: #d1fae5;
   --color-transit-500: #10b981;
   --color-transit-700: #047857;
@@ -19,7 +25,10 @@ body {
   margin: 0;
   font-family: Manrope, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #0f172a;
-  background-color: #ffffff;
+  background-color: #f8fafc;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
