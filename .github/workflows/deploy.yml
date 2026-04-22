@@ -8,6 +8,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -18,8 +21,6 @@ jobs:
             cd /var/www/caleb
             git pull origin main
             npm install
-            NODE_OPTIONS="--max-old-space-size=4096" npm run build
-            # Try to delete the old process, but don't fail if it doesn't exist
+            npm run build
             pm2 delete order-admin || true
-            # Start the new process
             pm2 start npm --name "order-admin" -- start
